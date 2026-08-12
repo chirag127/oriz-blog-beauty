@@ -23,37 +23,36 @@ const categories = [
 const tags = (await getTagsWithCounts()).slice(0, 8).map(({ tag }) => tag)
 ---
 <footer class="blog-footer" role="contentinfo">
-  <div class="bf-quote">
-    <blockquote>
-      <span aria-hidden="true" class="bf-q-mark">“</span>
-      Good skin is a short routine, kept.
+  <div class="bf-colophon">
+    <p class="bf-mark">LUMEN</p>
+    <blockquote class="bf-motto">
+      <span aria-hidden="true" class="bf-q-mark">“</span>Good skin is a short routine, kept.
     </blockquote>
-    <p class="bf-quote-attr">— Lumen</p>
+    <p class="bf-imprint mono">The beauty journal · published from India · est. 2026</p>
   </div>
   <div class="bf-grid">
     <div class="bf-col">
-      <h3 class="bf-h">Shelves</h3>
+      <h3 class="bf-h">Ingredients</h3>
       <ul>
         {categories.map((c) => <li><a href={c.slug ? `/categories/${c.slug}/` : '/categories/'}>{c.name}</a></li>)}
       </ul>
     </div>
     <div class="bf-col">
-      <h3 class="bf-h">Recent</h3>
+      <h3 class="bf-h">The Face</h3>
       <ul>
         <li><a href="/blog/">Latest posts</a></li>
         <li><a href="/archive/">Archive</a></li>
-        <li><a href="/archive/">All posts</a></li>
         <li><a href="/now/">Now</a></li>
       </ul>
     </div>
     <div class="bf-col">
-      <h3 class="bf-h">Tags</h3>
+      <h3 class="bf-h">Reviews</h3>
       <ul class="bf-tags">
         {tags.map((t) => <li><a href={`/tags/${slugifyTag(t)}/`}>#{t}</a></li>)}
       </ul>
     </div>
     <div class="bf-col">
-      <h3 class="bf-h">Series</h3>
+      <h3 class="bf-h">Rituals</h3>
       <ul>
         <li><a href="/series/">Browse series</a></li>
         <li><a href="/blog/">Latest threads</a></li>
@@ -72,30 +71,36 @@ const tags = (await getTagsWithCounts()).slice(0, 8).map(({ tag }) => tag)
     margin-top: 5rem;
     background: var(--color-paper-2, var(--paper-2, transparent));
     color: var(--color-ink, var(--ink));
-    border-top: 1px solid var(--color-rule, var(--rule));
+    border-top: 2px solid var(--color-ink, var(--ink));
   }
-  .bf-quote {
+  .bf-colophon {
     max-width: 1200px; margin: 0 auto;
-    padding: 48px 16px 24px;
-    text-align: left;
+    padding: 56px 16px 20px;
+    text-align: center;
+    border-bottom: 1px solid var(--color-rule, var(--rule));
   }
-  .bf-quote blockquote {
+  .bf-mark {
     margin: 0;
-    font-family: var(--font-display, 'Source Serif 4', Georgia, serif);
-    font-style: normal; font-weight: 600; font-size: clamp(22px, 3.2vw, 30px);
-    line-height: 1.3; letter-spacing: -0.015em;
-    color: var(--color-ink, var(--ink)); max-width: 560px;
+    font-family: var(--font-display, 'Fraunces', Georgia, serif);
+    font-style: italic; font-weight: 460;
+    font-size: clamp(40px, 8vw, 68px); line-height: 1; letter-spacing: -0.02em;
+    color: var(--color-ink, var(--ink));
   }
-  .bf-q-mark { font-size: 1.5em; line-height: 0; color: var(--color-accent, var(--cobalt, #e63a1f)); margin-right: 4px; }
-  .bf-quote-attr {
+  .bf-motto {
+    margin: 18px auto 0; max-width: 520px;
+    font-family: var(--font-body, Georgia, serif); font-style: italic;
+    font-size: clamp(18px, 2.6vw, 24px); line-height: 1.35; color: var(--color-ink-mute, var(--ink-mute));
+  }
+  .bf-q-mark { color: var(--color-accent, var(--accent, #c2557a)); margin-right: 2px; }
+  .bf-imprint {
     margin: 16px 0 0; font-family: var(--font-mono, ui-monospace);
     font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em;
     color: var(--color-ink-mute, var(--ink-mute));
   }
   .bf-grid {
     max-width: 1200px; margin: 0 auto;
-    display: grid; grid-template-columns: 1fr; gap: 24px;
-    padding: 12px 16px 24px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+    padding: 28px 16px 24px;
   }
   .bf-h {
     margin: 0 0 14px;
@@ -108,7 +113,6 @@ const tags = (await getTagsWithCounts()).slice(0, 8).map(({ tag }) => tag)
   .bf-col a:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
   .bf-tags { flex-direction: row; flex-wrap: wrap; gap: 8px 12px; }
   .bf-tags a { font-family: var(--font-mono, ui-monospace); font-size: 13px; color: var(--color-ink-mute, var(--ink-mute)); }
-  .bf-tags a:hover { color: var(--color-accent, var(--cobalt, #e63a1f)); text-decoration: none; }
-  @media (min-width: 768px) { .bf-grid { grid-template-columns: 1fr 1fr; gap: 32px; padding: 16px 24px 28px; } .bf-quote { padding: 64px 24px 20px; } }
-  @media (min-width: 1024px) { .bf-grid { grid-template-columns: repeat(4, 1fr); padding: 16px 24px 32px; } }
+  .bf-tags a:hover { color: var(--color-accent, var(--accent, #c2557a)); text-decoration: none; }
+  @media (min-width: 768px) { .bf-grid { grid-template-columns: repeat(4, 1fr); gap: 32px; padding: 32px 24px 28px; } }
 </style>

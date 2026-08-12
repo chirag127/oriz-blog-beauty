@@ -1,0 +1,122 @@
+---
+/*
+ * Wordmark — "Lumen" set in the display serif (Fraunces italic), with a gilt
+ * "dewdrop" sitting over the i — the beauty blog's signature glyph, echoing
+ * the dewy-skin luminosity the palette is built around.
+ *
+ * Bespoke to this site (the oriz family shares MECHANISM, not looks): where
+ * oriz-blog uses a proofreader z-strike, Lumen uses the dewdrop-over-i.
+ * Prop API is unchanged so every call site compiles.
+ */
+
+interface Props {
+  /** Sub-section name — rendered after a soft separator. */
+  subtitle?: string
+  /** Display size in CSS pixels. */
+  size?: number
+  /** Wrap the mark in an <a href="/"> — defaults to '/' when subtitle is set. */
+  href?: string | null
+  /** Render as <h1> (the masthead) rather than <div>. */
+  asHeading?: boolean
+}
+
+const { subtitle, size = 96, href = null, asHeading = false } = Astro.props
+const Tag = asHeading ? 'h1' : ('div' as const)
+const label = subtitle ? `Lumen — ${subtitle}` : 'Lumen'
+---
+
+{
+  href ? (
+    <a class="wordmark-link" href={href} aria-label={label}>
+      <Tag class="wordmark" style={`--wm-size: ${size}px;`}>
+        <span class="wordmark-mark">
+          <span class="wordmark-letter">L</span>
+          <span class="wordmark-letter">u</span>
+          <span class="wordmark-letter">m</span>
+          <span class="wordmark-letter">e</span>
+          <span class="wordmark-letter">n</span>
+        </span>
+        {subtitle && (
+          <>
+            <span class="wordmark-sep" aria-hidden="true">·</span>
+            <span class="wordmark-sub">{subtitle}</span>
+          </>
+        )}
+      </Tag>
+    </a>
+  ) : (
+    <Tag class="wordmark" style={`--wm-size: ${size}px;`}>
+      <span class="wordmark-mark">
+        <span class="wordmark-letter">L</span>
+        <span class="wordmark-letter">u</span>
+        <span class="wordmark-letter">m</span>
+        <span class="wordmark-letter">e</span>
+        <span class="wordmark-letter">n</span>
+      </span>
+      {subtitle && (
+        <>
+          <span class="wordmark-sep" aria-hidden="true">·</span>
+          <span class="wordmark-sub">{subtitle}</span>
+        </>
+      )}
+    </Tag>
+  )
+}
+
+<style>
+  .wordmark-link {
+    display: inline-block;
+    color: inherit;
+    text-decoration: none;
+  }
+  .wordmark {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.28em;
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 460;
+    font-style: italic;
+    font-size: var(--wm-size, 96px);
+    font-variation-settings: "opsz" 40, "SOFT" 60, "WONK" 1;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .wordmark-mark {
+    display: inline-flex;
+    align-items: baseline;
+  }
+  .wordmark-letter {
+    position: relative;
+    display: inline-block;
+  }
+  /* gilt dewdrop over the "u" bowl — the signature glyph */
+  .wordmark-mark .wordmark-letter:nth-child(2)::before {
+    content: '';
+    position: absolute;
+    top: -0.34em;
+    left: 50%;
+    width: 0.18em;
+    height: 0.18em;
+    transform: translateX(-50%);
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    background: radial-gradient(circle at 35% 30%, #fff6, var(--gilt) 70%, var(--accent));
+    box-shadow: 0 0 0 0.03em color-mix(in oklab, var(--gilt) 40%, transparent);
+  }
+  .wordmark-sep {
+    margin-inline: 0.05em;
+    color: var(--ink-mute);
+    font-style: normal;
+    font-weight: 400;
+  }
+  .wordmark-sub {
+    color: var(--accent);
+    font-family: var(--font-utility);
+    font-style: normal;
+    font-weight: 600;
+    font-size: 0.42em;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+</style>

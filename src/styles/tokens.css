@@ -1,0 +1,240 @@
+/*
+ * tokens.css — Lumen / notes identity: Beauty & Skincare ("The Regimen").
+ *
+ * Bespoke visual identity, deliberately NOT the oriz-blog "Signal Press" look
+ * (amber + Source Serif ink-paper) and NOT a recolor of it. Grounded in the
+ * niche's own world — blush porcelain, botanical-green ink, rose-mauve
+ * cosmetics accent, and a whisper of gilt gold for the "dewy" highlight.
+ *
+ * Palette:
+ *   --rosewater #F7EDEA   warm blush-porcelain page (light)   (NOT cream)
+ *   --serum     #33513F   deep botanical/eucalyptus green ink  (NOT black)
+ *   --petal     #C2557A   rose-mauve accent — links, active    (NOT terracotta)
+ *   --gilt      #B98B37   muted gold micro-accent — dewdrop, luxe hairlines
+ *   --mist      #EADDE0   soft panel / surface tint
+ *   --night     #1B1A22   aubergine-charcoal (dark mode base)  (NOT pure black)
+ *
+ * Every --color-* alias below is kept so chrome/legal/Footer components
+ * (which read the shell token names) compile unchanged. Theme modes:
+ *   :root                              → light (default, blush)
+ *   @media (prefers-color-scheme:dark) → dark, UNLESS [data-theme="light"]
+ *   [data-theme="dark"]                → dark, always
+ *   [data-theme="sepia"]               → warm apothecary paper
+ *   [data-theme="hc"]                  → high contrast
+ */
+:root {
+  color-scheme: light;
+
+  /* ── blush-porcelain palette (light default) ──────────────────────────
+     Botanical-green ink on warm blush paper, rose-mauve cosmetics accent,
+     gilt gold reserved for the dewdrop glow + luxe hairlines. */
+  --brand: #c2557a; /* rose-mauve — links, active, primary */
+  --brand-soft: #f3e0e6; /* soft petal tint — hover, chips */
+  --gilt: #b98b37; /* muted gold — dewdrop, luxe rule */
+  --gilt-soft: #efe3c9;
+  --success: #4f8a5b;
+  --danger-color: #c15a4e;
+
+  --paper: #f7edea; /* blush porcelain (page bg) */
+  --paper-2: #fdf7f4; /* lifted panel — lighter than paper (glass) */
+  --mist: #eaddE0;
+  --surface: var(--paper-2);
+  --ink: #33513f; /* deep botanical green text */
+  --ink-mute: #7c7a76; /* warm-grey secondary */
+  --rule: #e4d3cf; /* soft blush hairlines */
+  --rule-strong: #d3b7b1; /* heavier rule */
+
+  /* canonical accent — everything routes through --accent. */
+  --accent: var(--brand);
+  --accent-soft: var(--brand-soft);
+  --cobalt: var(--accent); /* back-compat alias */
+  --brand-tint: var(--brand-soft);
+  --sage: var(--success);
+  --vermilion: var(--danger-color);
+  --highlighter: var(--gilt);
+
+  /* content-vertical marker colours — routine-step tints (soft, cosmetic).
+     Routines · Ingredients · Wellness · Reviews · Notes. */
+  --v-dev: #c2557a; /* Routines → rose (primary vertical) */
+  --v-finance: #4f8a5b; /* Ingredients → botanical green */
+  --v-culture: #9c6bb0; /* Wellness → soft plum */
+  --v-health: #b98b37; /* Reviews → gilt */
+  --v-personal: #7c7a76; /* Notes → warm grey */
+
+  /* semantic passthroughs */
+  --color-bg: var(--paper);
+  --color-fg: var(--ink);
+  --color-accent: var(--brand);
+  --color-accent-fg: #fdf7f4;
+  --color-sage: var(--success);
+  --color-muted: var(--ink-mute);
+  --color-border: var(--rule);
+  --color-bg-soft: var(--paper-2);
+  --color-bg-muted: var(--mist);
+  --color-prose: var(--ink);
+  --color-fg-muted: var(--ink-mute);
+  --color-fg-soft: var(--ink-mute);
+
+  /* color alias layer (chrome components read these) */
+  --color-brand-indigo: var(--brand);
+  --color-brand-indigo-soft: var(--brand-soft);
+  --color-brand-success: var(--success);
+  --color-brand-danger: var(--danger-color);
+  --color-neutral-0: #f7edea;
+  --color-neutral-50: #fdf7f4;
+  --color-neutral-100: #f1e4e0;
+  --color-neutral-200: #e4d3cf;
+  --color-neutral-300: #d3b7b1;
+  --color-neutral-500: #7c7a76;
+  --color-neutral-700: #4a5f4f;
+  --color-neutral-900: #33513f;
+  --color-neutral-1000: #22331f;
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-ink: var(--ink);
+  --color-ink-mute: var(--ink-mute);
+  --color-rule: var(--rule);
+
+  /* ── type ───────────────────────────────────────────────────────────
+     Families declared ONCE in global.css @theme. Not duplicated here. */
+
+  --text-2xs: 10px;
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-md: 17px;
+  --text-lg: 20px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+  --text-3xl: 48px;
+
+  /* spacing — 8 steps */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* motion — 3 durations + 3 easings (restrained) */
+  --dur-fast: 140ms;
+  --dur-base: 240ms;
+  --dur-slow: 420ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* breakpoints */
+  --bp-sm: 480px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1440px;
+
+  /* radii + containers — softer, dewy (NOT zero-radius newspaper) */
+  --radius-card: 18px;
+  --radius-button: 999px;
+  --container-page: 1080px;
+}
+
+/* ── DARK — system preference, unless user forced light ─────────────── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --brand: #e484a4; /* brightened rose for dark */
+    --brand-soft: #37232c;
+    --gilt: #d6ab5a;
+    --gilt-soft: #3a3120;
+    --paper: #1b1a22; /* aubergine-charcoal */
+    --paper-2: #24222d; /* lifted glass panel */
+    --mist: #2a2733;
+    --ink: #f2e9ec; /* soft rose-white */
+    --ink-mute: #a89ea6;
+    --rule: #352f3b;
+    --rule-strong: #453d4d;
+    --v-dev: #e484a4;
+    --v-finance: #7fc08c;
+    --v-culture: #c39bd6;
+    --v-health: #d6ab5a;
+    --v-personal: #a89ea6;
+    --color-accent-fg: #1b1a22;
+    --color-neutral-50: #24222d;
+    --color-neutral-100: #2a2733;
+    --color-neutral-200: #352f3b;
+    --color-neutral-500: #a89ea6;
+    --color-neutral-700: #d3c8ce;
+    --color-neutral-900: #f2e9ec;
+  }
+}
+
+/* ── DARK — explicit user override, wins over system ────────────────── */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --brand: #e484a4;
+  --brand-soft: #37232c;
+  --gilt: #d6ab5a;
+  --gilt-soft: #3a3120;
+  --paper: #1b1a22;
+  --paper-2: #24222d;
+  --mist: #2a2733;
+  --ink: #f2e9ec;
+  --ink-mute: #a89ea6;
+  --rule: #352f3b;
+  --rule-strong: #453d4d;
+  --v-dev: #e484a4;
+  --v-finance: #7fc08c;
+  --v-culture: #c39bd6;
+  --v-health: #d6ab5a;
+  --v-personal: #a89ea6;
+  --color-accent-fg: #1b1a22;
+  --color-neutral-50: #24222d;
+  --color-neutral-100: #2a2733;
+  --color-neutral-200: #352f3b;
+  --color-neutral-500: #a89ea6;
+  --color-neutral-700: #d3c8ce;
+  --color-neutral-900: #f2e9ec;
+}
+
+/* ── SEPIA — warm apothecary paper, gilt-forward ────────────────────── */
+:root[data-theme='sepia'] {
+  color-scheme: light;
+  --brand: #a8506c;
+  --brand-soft: #efdfd6;
+  --paper: #f4ebdc;
+  --paper-2: #fbf5ea;
+  --mist: #ece0cd;
+  --ink: #40483a;
+  --ink-mute: #857a68;
+  --rule: #e2d5bf;
+  --color-accent-fg: #fbf5ea;
+  --color-fg-soft: color-mix(in oklab, var(--ink) 55%, var(--paper));
+  --color-neutral-50: #fbf5ea;
+  --color-neutral-100: #ece0cd;
+  --color-neutral-200: #e2d5bf;
+  --color-neutral-500: #857a68;
+  --color-neutral-700: #5c5647;
+  --color-neutral-900: #40483a;
+}
+
+/* ── HIGH-CONTRAST — hard edges, deep ink ───────────────────────────── */
+:root[data-theme='hc'] {
+  color-scheme: light;
+  --brand: #a01d51;
+  --brand-soft: #ffe0ec;
+  --paper: #ffffff;
+  --paper-2: #ffffff;
+  --mist: #ffffff;
+  --ink: #10231a;
+  --ink-mute: #2a2a2a;
+  --rule: #10231a;
+  --rule-strong: #10231a;
+  --color-accent-fg: #ffffff;
+  --color-fg-soft: #2a2a2a;
+  --color-neutral-50: #ffffff;
+  --color-neutral-100: #ffffff;
+  --color-neutral-200: #10231a;
+  --color-neutral-500: #2a2a2a;
+  --color-neutral-700: #10231a;
+  --color-neutral-900: #10231a;
+}

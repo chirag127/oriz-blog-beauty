@@ -1,0 +1,633 @@
+---
+import SeriesSpine from '~/components/SeriesSpine.astro'
+/**
+ * /  — Lumen homepage ("The Regimen" front page).
+ *
+ * Hero = thesis, not a masthead. The claim ("Skincare that works is short,
+ * boring, and yours.") sits under a soft dewdrop glow, followed by the
+ * signature Routine Ladder: an ordered 01→04 step-rail (cleanse · treat ·
+ * moisturise · protect) — numbering is meaningful here because a routine is
+ * genuinely sequential. Below: three soft strata:
+ *   1. IN PROGRESS — series
+ *   2. LATEST NOTES — recent posts (soft glass rows, rose hover)
+ *   3. SHELVES      — categories
+ */
+import BaseLayout from '~/layouts/BaseLayout.astro'
+import {
+  getCategoriesWithCounts,
+  getPostsInSeries,
+  getPublishedPosts,
+  getSeriesWithCounts,
+  postVertical,
+  readingTimeFor,
+  slugifyTag,
+  verticalFor,
+  verticalLabel,
+} from '~/lib/blog'
+import { SITE_CONFIG } from '~/lib/config'
+
+const allPosts = await getPublishedPosts()
+const lead = allPosts[0]
+const recentPosts = allPosts.slice(1, 8)
+
+const seriesAll = await getSeriesWithCounts()
+// In-progress: series where at least one post exists. We model "published"
+// as the count of currently-published parts. Total is exposed as a heuristic
+// (count + a small tail of "drafting" dots) — for v1 of the v2 design, we
+// just use count for total and count for published, and animate the last
+// dot as `current` so the spine has the signature glyph (`⦿`) visible.
+type InProgress = {
+  name: string
+  slug: string
+  total: number
+  published: number
+  current: number
+  latest: Date
+  parts: Awaited<ReturnType<typeof getPostsInSeries>>
+}
+const inProgress: InProgress[] = []
+for (const { series, count } of seriesAll.slice(0, 4)) {
+  const parts = await getPostsInSeries(series)
+  const latest = parts.reduce(
+    (max, p) => (p.data.pubDate > max ? p.data.pubDate : max),
+    parts[0].data.pubDate,
+  )
+  // Total must never be less than what's already published (otherwise the
+  // label reads "part 29 of 12"). Use the larger of: published count, the
+  // largest explicit `part` field, or published+1 to hint one more coming.
+  const explicitMax = parts.reduce((mx, p) => {
+    const v = typeof p.data.part === 'number' ? p.data.part : Number(p.data.part)
+    return Number.isFinite(v) ? Math.max(mx, v) : mx
+  }, 0)
+  const total = Math.max(count, explicitMax, count + 1)
+  inProgress.push({
+    name: series,
+    slug: slugifyTag(series),
+    total,
+    published: count,
+    current: count, // last filled dot is "current"
+    latest,
+    parts,
+  })
+}
+inProgress.sort((a, b) => b.latest.valueOf() - a.latest.valueOf())
+
+const cats = await getCategoriesWithCounts()
+
+const leadVertical = lead ? postVertical(lead) : 'personal'
+const leadRt = lead ? (lead.data.readingTime ?? readingTimeFor(lead)) : ''
+
+// "Days since" helper for the in-progress rail.
+function ago(date: Date): string {
+  const days = Math.floor((Date.now() - date.valueOf()) / 86_400_000)
+  if (days < 1) return 'today'
+  if (days === 1) return '1d ago'
+  if (days < 30) return `${days}d ago`
+  const months = Math.floor(days / 30)
+  if (months === 1) return '1mo ago'
+  if (months < 12) return `${months}mo ago`
+  const years = Math.floor(days / 365)
+  return years === 1 ? '1y ago' : `${years}y ago`
+}
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Blog',
+  name: SITE_CONFIG.title,
+  url: `${SITE_CONFIG.url}/`,
+  description: SITE_CONFIG.description,
+  author: { '@type': 'Person', name: SITE_CONFIG.author.name, url: SITE_CONFIG.author.url },
+}
+---
+
+<BaseLayout
+  title="Lumen — skincare notes"
+  description={SITE_CONFIG.description}
+  jsonLd={jsonLd}
+  hideSidebar
+>
+  <div class="container-page">
+    {/* Hero — thesis under a dewdrop glow, then the Routine Ladder. */}
+    <section class="hero" aria-label="Introduction">
+      <span class="dewdrop" aria-hidden="true"></span>
+      <p class="hero-eyebrow mono">
+        <span class="hero-eyebrow-dot" aria-hidden="true"></span>
+        Skincare, without the shelf
+      </p>
+      <h1 class="hero-thesis">
+        Skincare that works is <em>short</em>, boring, and yours.
+      </h1>
+      <p class="hero-lede">
+        Plain, tested notes on building a routine you will actually keep —
+        reading ingredient labels, choosing one active at a time, and dressing
+        for the climate you live in.
+      </p>
+
+      {/* Signature: the Routine Ladder — ordered, because a routine is. */}
+      <ol class="ladder" aria-label="The four-step routine">
+        <li class="ladder-step"><span class="ladder-num mono">01</span><span class="ladder-name">Cleanse</span></li>
+        <li class="ladder-step"><span class="ladder-num mono">02</span><span class="ladder-name">Treat</span></li>
+        <li class="ladder-step"><span class="ladder-num mono">03</span><span class="ladder-name">Moisturise</span></li>
+        <li class="ladder-step"><span class="ladder-num mono">04</span><span class="ladder-name">Protect</span></li>
+      </ol>
+    </section>
+
+    {lead && (
+      <section class="lead" data-vertical={leadVertical} aria-labelledby="lead-title">
+        <a class="lead-link" href={`/blog/${lead.id}`}>
+          <span class="lead-kicker mono">
+            <span class="lead-tick" aria-hidden="true"></span>
+            <span class="lead-desk">{verticalLabel(leadVertical)}</span>
+            <span class="lead-flag">Start here</span>
+          </span>
+          <h2 id="lead-title" class="lead-title">{lead.data.title}</h2>
+          <p class="lead-dek">{lead.data.description}</p>
+          <span class="lead-meta mono">
+            <time datetime={lead.data.pubDate.toISOString()}>{lead.data.pubDate.toISOString().slice(0, 10)}</time>
+            <span aria-hidden="true">·</span>
+            <span>{leadRt}</span>
+          </span>
+        </a>
+      </section>
+    )}
+
+
+    <hr class="hairline" />
+
+    {/* Stratum 1 — IN PROGRESS. */}
+    {inProgress.length > 0 && (
+      <section class="stratum stratum-progress" aria-labelledby="s-progress">
+        <h2 id="s-progress" class="stratum-h mono">In progress</h2>
+        <ul class="progress-list">
+          {inProgress.map((s) => (
+            <li class="progress-row">
+              <a class="progress-link" href={`/series/${s.slug}/`}>
+                <span class="progress-name">{s.name}</span>
+                <span class="progress-meta mono">part {s.published} of {s.total}</span>
+                <span class="progress-spine-mount">
+                  <SeriesSpine
+                    total={s.total}
+                    published={s.published}
+                    current={s.current}
+                    size="md"
+                  />
+                </span>
+                <span class="progress-ago mono">{ago(s.latest)}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    <hr class="hairline" />
+
+    {/* Stratum 2 — LATEST NOTES. */}
+    <section class="stratum stratum-recent" aria-labelledby="s-recent">
+      <h2 id="s-recent" class="stratum-h mono">Latest notes</h2>
+      <ul class="recent-list">
+        {recentPosts.map((p) => (
+          <li class="recent-row" data-vertical={postVertical(p)}>
+            <a class="recent-link" href={`/blog/${p.id}`}>
+              <time class="recent-date mono" datetime={p.data.pubDate.toISOString()}>
+                {p.data.pubDate.toISOString().slice(0, 10)}
+              </time>
+              <span class="recent-meat">
+                <span class="recent-kicker mono">
+                  <span class="recent-tick" aria-hidden="true"></span>{verticalLabel(postVertical(p))}
+                </span>
+                <span class="recent-title">{p.data.title}</span>
+                <span class="recent-dek">{p.data.description}</span>
+              </span>
+              <span class="recent-rt mono">{p.data.readingTime ?? readingTimeFor(p)}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <p class="all-link">
+        <a href="/archive/">every note in the archive →</a>
+      </p>
+    </section>
+
+    <hr class="hairline" />
+
+    {/* Stratum 3 — SHELVES (categories). */}
+    {cats.length > 0 && (
+      <section class="stratum stratum-cats" aria-labelledby="s-cats">
+        <h2 id="s-cats" class="stratum-h mono">Shelves</h2>
+        <p class="cats-row">
+          {cats.map((c, i) => (
+            <>
+              {i > 0 && <span class="cats-dot" aria-hidden="true">·</span>}
+              <a href={`/categories/${slugifyTag(c.category)}/`} class="cats-link" data-vertical={verticalFor(c.category)}>
+                <span class="cats-name">{c.category}</span>
+                <span class="cats-count mono">({c.count})</span>
+              </a>
+            </>
+          ))}
+        </p>
+      </section>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .container-page {
+    max-width: 920px;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 4vw, 2rem);
+  }
+
+  /* ── Hero (thesis + dewdrop + Routine Ladder) ──────────────────────── */
+
+  .hero {
+    position: relative;
+    padding-block: clamp(2.5rem, 8vw, 5rem) 2rem;
+    isolation: isolate;
+  }
+  /* Signature: soft dewdrop glow — the "dewy skin" luminosity, one instance. */
+  .dewdrop {
+    position: absolute;
+    z-index: -1;
+    top: clamp(1rem, 6vw, 3rem);
+    left: clamp(-2rem, -2vw, 0rem);
+    width: clamp(240px, 42vw, 460px);
+    height: clamp(240px, 42vw, 460px);
+    border-radius: 50%;
+    background:
+      radial-gradient(closest-side,
+        color-mix(in oklab, var(--accent) 30%, transparent) 0%,
+        color-mix(in oklab, var(--gilt) 16%, transparent) 45%,
+        transparent 72%);
+    filter: blur(8px);
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 11.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--ink-mute);
+    margin: 0 0 1.25rem;
+  }
+  .hero-eyebrow-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent) 20%, transparent);
+    flex: 0 0 auto;
+  }
+  .hero-thesis {
+    font-family: var(--font-display);
+    font-weight: 380;
+    font-size: clamp(2.4rem, 7.5vw, 4.6rem);
+    line-height: 1.04;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin: 0;
+    max-width: 17ch;
+  }
+  .hero-thesis em {
+    font-style: italic;
+    font-variation-settings: "opsz" 40, "SOFT" 80, "WONK" 1;
+    color: var(--accent);
+  }
+  .hero-lede {
+    font-family: var(--font-body);
+    font-size: clamp(1.0625rem, 2vw, 1.3125rem);
+    line-height: 1.55;
+    color: var(--ink-mute);
+    margin: 1.5rem 0 0;
+    max-width: 54ch;
+  }
+
+  /* The Routine Ladder — ordered chips joined by a dewline. */
+  .ladder {
+    list-style: none;
+    margin: 2.25rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 0.625rem;
+    counter-reset: step;
+  }
+  .ladder-step {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.6rem 1.05rem 0.6rem 0.85rem;
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-button);
+    box-shadow: 0 1px 0 color-mix(in oklab, var(--gilt) 22%, transparent);
+    transition:
+      transform var(--dur-base) var(--ease-out),
+      border-color var(--dur-base) var(--ease-out),
+      box-shadow var(--dur-base) var(--ease-out);
+  }
+  /* dewline: the gilt connector between consecutive steps */
+  .ladder-step:not(:last-child)::after {
+    content: '';
+    width: 0.9rem;
+    height: 1px;
+    margin-left: 0.15rem;
+    background: linear-gradient(90deg, var(--gilt), transparent);
+    flex: 0 0 auto;
+  }
+  .ladder-num {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    background: var(--brand-soft);
+    border-radius: 999px;
+    padding: 0.18em 0.5em;
+  }
+  .ladder-name {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    color: var(--ink);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .ladder-step:hover {
+      transform: translateY(-2px);
+      border-color: var(--rule-strong);
+      box-shadow: 0 6px 18px color-mix(in oklab, var(--accent) 14%, transparent);
+    }
+  }
+
+  /* ── Lead ("start here") ───────────────────────────────────────────── */
+
+  .lead {
+    --v: var(--v-personal);
+    padding: 1.75rem;
+    margin-block: 0.5rem 0.5rem;
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--v);
+    border-radius: var(--radius-card);
+  }
+  .lead[data-vertical='dev'] { --v: var(--v-dev); }
+  .lead[data-vertical='finance'] { --v: var(--v-finance); }
+  .lead[data-vertical='culture'] { --v: var(--v-culture); }
+  .lead[data-vertical='health'] { --v: var(--v-health); }
+  .lead-link { display: grid; gap: 0.625rem; color: var(--ink); text-decoration: none; }
+  .lead-kicker {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 600; color: var(--ink-mute);
+  }
+  .lead-tick { width: 8px; height: 8px; border-radius: 50%; background: var(--v); flex: 0 0 auto; }
+  .lead-desk { color: var(--v); font-weight: 600; }
+  .lead-flag { border-left: 1px solid var(--rule); padding-left: 0.5rem; color: var(--accent); }
+  .lead-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 420;
+    letter-spacing: -0.018em;
+    line-height: 1.1;
+    margin: 0;
+    max-width: 22ch;
+  }
+  .lead-link:hover .lead-title { color: var(--accent); }
+  .lead-dek {
+    font-family: var(--font-body);
+    font-size: 1.125rem;
+    line-height: 1.55;
+    color: var(--ink-mute);
+    margin: 0;
+    max-width: 58ch;
+  }
+  .lead-meta { display: inline-flex; gap: 0.5rem; font-size: 11px; letter-spacing: 0.06em; color: var(--ink-mute); }
+
+  /* ── Strata ────────────────────────────────────────────────────────── */
+
+  .stratum { padding-block: 1.75rem 1.75rem; }
+  .stratum-h {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-mute);
+    font-weight: 500;
+    margin: 0 0 1.25rem;
+  }
+
+  /* ── In progress ──────────────────────────────────────────────────── */
+
+  .progress-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+  .progress-row { padding: 0; }
+  .progress-link {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    gap: 1rem;
+    align-items: baseline;
+    color: var(--ink);
+    text-decoration: none;
+    padding-block: 0.5rem;
+  }
+  .progress-link:hover { color: var(--accent); }
+  .progress-link:hover .progress-meta,
+  .progress-link:hover .progress-ago { color: var(--accent); }
+  .progress-name {
+    font-family: var(--font-display);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .progress-meta, .progress-ago {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--ink-mute);
+  }
+  .progress-spine-mount { display: inline-flex; }
+
+  @media (max-width: 640px) {
+    .progress-link {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas:
+        'name      ago'
+        'meta      meta'
+        'spine     spine';
+      row-gap: 0.25rem;
+    }
+    .progress-name { grid-area: name; }
+    .progress-meta { grid-area: meta; }
+    .progress-spine-mount { grid-area: spine; }
+    .progress-ago { grid-area: ago; text-align: right; }
+  }
+
+  /* ── Recent ───────────────────────────────────────────────────────── */
+
+  .recent-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .recent-row {
+    --v: var(--v-personal);
+    border-bottom: 1px solid color-mix(in oklab, var(--rule) 70%, transparent);
+  }
+  .recent-row[data-vertical='dev'] { --v: var(--v-dev); }
+  .recent-row[data-vertical='finance'] { --v: var(--v-finance); }
+  .recent-row[data-vertical='culture'] { --v: var(--v-culture); }
+  .recent-row[data-vertical='health'] { --v: var(--v-health); }
+  .recent-row:last-child { border-bottom: 0; }
+  .recent-link {
+    display: grid;
+    grid-template-columns: 100px minmax(0, 1fr) auto;
+    gap: 1.25rem;
+    align-items: baseline;
+    color: var(--ink);
+    text-decoration: none;
+    padding-block: 0.875rem;
+    padding-left: 0.75rem;
+    margin-left: -0.75rem;
+    border-left: 2px solid transparent;
+    transition: border-color var(--dur-fast, 120ms) ease;
+  }
+  .recent-link:hover { border-left-color: var(--v); }
+  .recent-link:hover .recent-title { color: var(--accent); }
+  .recent-link:hover .recent-date,
+  .recent-link:hover .recent-rt { color: var(--accent); }
+
+  .recent-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--v);
+    font-weight: 500;
+  }
+  .recent-tick { width: 6px; height: 6px; background: var(--v); flex: 0 0 auto; }
+
+  .recent-date {
+    color: var(--ink-mute);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    position: relative;
+    padding-left: 0.875rem;
+  }
+  /* dateline gutter: coral tick marks the wire-feed timestamp */
+  .recent-date::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.12em;
+    width: 3px;
+    height: 0.7em;
+    background: var(--cobalt);
+  }
+  .recent-meat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+  }
+  .recent-title {
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+  .recent-dek {
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    color: var(--ink-mute);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+  }
+  .recent-rt {
+    color: var(--ink-mute);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 640px) {
+    .recent-link {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas:
+        'date   rt'
+        'meat   meat';
+      row-gap: 0.25rem;
+    }
+    .recent-date { grid-area: date; }
+    .recent-rt { grid-area: rt; text-align: right; }
+    .recent-meat { grid-area: meat; }
+  }
+
+  .all-link {
+    margin: 1.25rem 0 0;
+    font-family: var(--font-sans);
+    font-size: 13.6px;
+  }
+  .all-link a {
+    color: var(--ink-mute);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--rule);
+  }
+  .all-link a:hover { color: var(--accent); text-decoration-color: var(--accent); }
+
+  /* ── By category (one row) ────────────────────────────────────────── */
+
+  .cats-row {
+    margin: 0;
+    line-height: 2;
+    color: var(--ink);
+  }
+  .cats-link {
+    --v: var(--v-personal);
+    color: var(--ink);
+    text-decoration: none;
+    margin-inline: 0.125rem;
+  }
+  .cats-link[data-vertical='dev'] { --v: var(--v-dev); }
+  .cats-link[data-vertical='finance'] { --v: var(--v-finance); }
+  .cats-link[data-vertical='culture'] { --v: var(--v-culture); }
+  .cats-link[data-vertical='health'] { --v: var(--v-health); }
+  .cats-link:hover .cats-name { color: var(--v); }
+  .cats-name {
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .cats-count {
+    color: var(--ink-mute);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    margin-left: 0.25rem;
+  }
+  .cats-dot { color: var(--rule); margin-inline: 0.625rem; }
+</style>

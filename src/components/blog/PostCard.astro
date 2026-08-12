@@ -1,11 +1,14 @@
 ---
 /**
- * PostCard — editorial listing entry ("Signal Press"). One hairline-ruled
- * row (no rounded card, no shadow, no radius): a vertical-coloured kicker
- * rule + desk label, a serif headline, a one-line dek, and a mono meta foot
- * (date · reading time). Used by every listing (index, tag, category,
- * related). The whole entry is one link; the desk kicker deep-links to the
- * category.
+ * PostCard — Lumen "shelf label" entry.
+ *
+ * Beauty-native aesthetic: each post is displayed like a product shelf label —
+ * a soft tinted swatch, a cosmetic category badge (pill), a Fraunces headline,
+ * a one-line dek, and a discreet mono foot. The hover reveals a gilt-accented
+ * bottom border (like opening a product drawer).
+ *
+ * This is NOT the newspaper-row layout used by sibling blogs. No left-rule tick,
+ * no grid kicker row. Shelves, not a ledger.
  */
 import type { CollectionEntry } from 'astro:content'
 import { formatPostDate, postVertical, slugifyTag, verticalLabel } from '~/lib/blog'
@@ -21,111 +24,119 @@ const catHref = `/categories/${slugifyTag(category)}/`
 const vert = postVertical(post)
 ---
 
-<article class="post-card" data-vertical={vert}>
-  <a class="post-card-link" href={href}>
-    <span class="post-card-kicker">
-      <span class="post-card-tick" aria-hidden="true"></span>
-      <span class="post-card-desk">{verticalLabel(vert)}</span>
-      <span class="post-card-cat">{category}</span>
-    </span>
-    <h3 class="post-card-title">{title}</h3>
-    <p class="post-card-desc">{description}</p>
-    <span class="post-card-foot">
+<article class="shelf-card" data-vertical={vert}>
+  <a class="shelf-link" href={href}>
+    <span class="shelf-swatch" aria-hidden="true"></span>
+    <span class="shelf-badge mono">{verticalLabel(vert)}</span>
+    <h3 class="shelf-title">{title}</h3>
+    <p class="shelf-dek">{description}</p>
+    <span class="shelf-foot mono">
       <time datetime={pubDate.toISOString()}>{formatPostDate(pubDate)}</time>
-      {readingTime && <span class="post-card-rt">{readingTime}</span>}
+      {readingTime && <span class="shelf-rt">{readingTime}</span>}
     </span>
   </a>
-  <a class="post-card-cat-link" href={catHref} aria-label={`More in ${category}`}>{category}</a>
+  <a class="shelf-cat-link" href={catHref} aria-label={`More in ${category}`}>{category}</a>
 </article>
 
 <style>
-  .post-card {
+  .shelf-card {
     position: relative;
-    border-top: 1px solid var(--rule);
     --v: var(--v-personal);
+    --swatch: color-mix(in oklab, var(--v) 12%, var(--paper-2));
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
   }
-  .post-card[data-vertical='dev'] { --v: var(--v-dev); }
-  .post-card[data-vertical='finance'] { --v: var(--v-finance); }
-  .post-card[data-vertical='culture'] { --v: var(--v-culture); }
-  .post-card[data-vertical='health'] { --v: var(--v-health); }
+  .shelf-card[data-vertical='dev']     { --v: var(--v-dev); }
+  .shelf-card[data-vertical='finance'] { --v: var(--v-finance); }
+  .shelf-card[data-vertical='culture'] { --v: var(--v-culture); }
+  .shelf-card[data-vertical='health']  { --v: var(--v-health); }
+  .shelf-card:hover {
+    border-color: var(--v);
+    box-shadow: 0 2px 12px color-mix(in oklab, var(--v) 14%, transparent);
+  }
 
-  .post-card-link {
-    display: grid;
-    gap: 0.5rem;
-    padding: 1.125rem 0 1.25rem 0.875rem;
+  /* Tinted top swatch — like a product color-story band */
+  .shelf-swatch {
+    display: block;
+    height: 5px;
+    background: linear-gradient(90deg, var(--v) 0%, color-mix(in oklab, var(--v) 40%, var(--gilt)) 100%);
+    border-radius: var(--radius-card) var(--radius-card) 0 0;
+    transition: height var(--dur-fast) ease;
+  }
+  .shelf-card:hover .shelf-swatch { height: 8px; }
+
+  .shelf-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 1.125rem 1.25rem 1.25rem;
     text-decoration: none;
     color: var(--ink);
-    border-left: 2px solid transparent;
-    margin-left: -0.875rem;
-    padding-left: 0.875rem;
-    transition: border-color var(--dur-fast, 120ms) ease;
   }
-  .post-card-link:hover { border-left-color: var(--v); }
 
-  .post-card-kicker {
+  /* Pill badge — cosmetic category chip */
+  .shelf-badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    font-family: var(--font-mono);
-    font-size: 11px;
+    align-self: flex-start;
+    padding: 0.18em 0.65em;
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--v) 14%, var(--paper));
+    color: var(--v);
+    font-size: 10px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--ink-mute);
-  }
-  .post-card-tick {
-    width: 7px;
-    height: 7px;
-    background: var(--v);
-    flex: 0 0 auto;
-  }
-  .post-card-desk { color: var(--v); font-weight: 500; }
-  .post-card-cat {
-    color: var(--ink-mute);
-    border-left: 1px solid var(--rule);
-    padding-left: 0.5rem;
-    letter-spacing: 0.1em;
+    font-weight: 600;
+    border: 1px solid color-mix(in oklab, var(--v) 28%, transparent);
   }
 
-  .post-card-title {
+  .shelf-title {
     font-family: var(--font-display);
-    font-size: 1.375rem;
-    font-weight: 600;
-    letter-spacing: -0.015em;
-    line-height: 1.2;
+    font-size: 1.25rem;
+    font-weight: 500;
+    letter-spacing: -0.012em;
+    line-height: 1.22;
     margin: 0;
     color: var(--ink);
   }
-  .post-card-link:hover .post-card-title { color: var(--accent); }
+  .shelf-card:hover .shelf-title { color: var(--accent); }
 
-  .post-card-desc {
+  .shelf-dek {
     color: var(--ink-mute);
     font-family: var(--font-body);
-    font-size: 0.9375rem;
+    font-size: 0.9rem;
     line-height: 1.5;
     margin: 0;
-    max-width: 62ch;
+    max-width: 58ch;
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     line-clamp: 2;
   }
-  .post-card-foot {
+
+  .shelf-foot {
+    margin-top: auto;
     display: inline-flex;
     align-items: center;
-    gap: 0.75rem;
-    font-family: var(--font-mono);
+    gap: 0.6rem;
     font-size: 11px;
     letter-spacing: 0.06em;
     color: var(--ink-mute);
+    padding-top: 0.4rem;
+    border-top: 1px solid var(--rule);
   }
-  .post-card-rt::before {
+  .shelf-rt::before {
     content: '·';
-    margin-right: 0.75rem;
+    margin-right: 0.6rem;
     color: var(--rule-strong, var(--rule));
   }
-  /* Sibling deep-link to category — visually hidden, keyboard reachable. */
-  .post-card-cat-link {
+
+  /* Visually hidden category deep-link */
+  .shelf-cat-link {
     position: absolute;
     inset: 0 0 auto auto;
     width: 1px;
@@ -134,18 +145,20 @@ const vert = postVertical(post)
     clip: rect(0 0 0 0);
     white-space: nowrap;
   }
-  .post-card-cat-link:focus-visible {
+  .shelf-cat-link:focus-visible {
     width: auto;
     height: auto;
     clip: auto;
-    top: 1.125rem;
-    right: 0;
+    top: 0.75rem;
+    right: 0.75rem;
     padding: 0.125rem 0.5rem;
     background: var(--paper);
     border: 1px solid var(--accent);
+    border-radius: 999px;
     color: var(--accent);
     font-family: var(--font-mono);
     font-size: 11px;
     text-transform: uppercase;
+    text-decoration: none;
   }
 </style>

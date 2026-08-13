@@ -1,32 +1,145 @@
-# Lumen — skincare notes
+# Lumen — Beauty & Skincare Notes
 
-Live: **https://beauty-blog.oriz.in**
+> Plain, tested skincare notes — minimal routines, reading ingredient labels, and caring for skin in Indian conditions.
 
-![License](https://img.shields.io/github/license/chirag127/oriz-blog-beauty)
-![Built with Astro](https://img.shields.io/badge/built%20with-Astro-BC52EE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/chirag127/oriz-blog-beauty?style=flat)](https://github.com/chirag127/oriz-blog-beauty/stargazers)
+[![Last commit](https://img.shields.io/github/last-commit/chirag127/oriz-blog-beauty)](https://github.com/chirag127/oriz-blog-beauty/commits)
+[![Built with Astro](https://img.shields.io/badge/built%20with-Astro-BC52EE?logo=astro&logoColor=white)](https://astro.build)
 
-Plain, tested skincare notes: minimal routines, reading ingredient labels, and caring for skin in Indian conditions. Part of the [oriz](https://oriz.in) family.
+## What it is
 
-## Identity
+**Lumen** is a static blog of no-nonsense beauty and skincare notes: how to build a minimal routine that actually works, how to read an ingredient label without marketing spin, and how to care for skin in India's heat, humidity, and sun. Evidence-first, product-agnostic, and free.
 
-Bespoke Beauty & Skincare design ("The Regimen") — not a recolor of any sister site.
+Its identity ("The Regimen") is bespoke — blush-porcelain paper, botanical-green ink, a rose-mauve accent, and Fraunces + Newsreader type — with a signature "Routine Ladder" (cleanse → treat → moisturise → protect) because a routine is genuinely sequential.
 
-- **Palette:** blush porcelain `#F7EDEA`, botanical-green ink `#33513F`, rose-mauve accent `#C2557A`, gilt gold `#B98B37`, mist panel `#EADDE0`; aubergine-charcoal `#1B1A22` dark mode.
-- **Type:** Fraunces (display, italic + optical sizing) · Newsreader (body serif) · Inter Tight (functional labels only).
-- **Signature:** the Routine Ladder (ordered 01→04 step-rail — cleanse · treat · moisturise · protect) under a soft "dewdrop" glow. Numbering is used because a routine is genuinely sequential.
+## Links
 
-## Stack
+- **Live site:** https://beauty-blog.oriz.in
+- **GHP landing:** https://chirag127.github.io/oriz-blog-beauty/
+- **Repo:** https://github.com/chirag127/oriz-blog-beauty
 
-Astro 6 · content collections (MDX) · Tailwind v4 · Pagefind search · RSS/Atom/JSON feeds · view transitions.
+## ⭐ Star CTA
 
-## Develop
+If this is useful, please ⭐ star the repo — it helps others find it.
+
+## How it flows
+
+```mermaid
+flowchart LR
+    A["MDX posts<br/>src/content/blog"] --> B["Astro content<br/>collection (zod schema)"]
+    B --> C["astro build<br/>SSG + Pagefind index"]
+    C --> D["Static HTML/CSS/JS<br/>dist/"]
+    D --> E["wrangler deploy<br/>(GitHub Actions on push)"]
+    E --> F["Cloudflare edge<br/>beauty-blog.oriz.in"]
+    F --> G["Reader"]
+    subgraph Author_time
+        A
+        B
+    end
+    subgraph CI_build
+        C
+        D
+    end
+    subgraph Edge_free_tier
+        E
+        F
+    end
+```
+
+## Features
+
+- Astro **content collections** with a strict zod schema (title, description, pubDate, tags, series, canonical).
+- **MDX** posts with GitHub-flavoured markdown and syntax highlighting (Shiki / Expressive Code).
+- Client-side **Pagefind** search over the built static index — no server, no API key.
+- **RSS / Atom / JSON** feeds and an XML sitemap.
+- View transitions, series, tags, categories, and author pages; per-post reading time.
+- Progressive Web App (offline-capable via Workbox / `vite-plugin-pwa`).
+- React 19 islands for interactive bits (Clerk account UI, embeds); the rest ships as zero-JS static HTML.
+
+## Tech stack
+
+- **Astro 6** (static output) · **TypeScript**
+- **Tailwind CSS v4** (via `@tailwindcss/vite`) · Fraunces + Newsreader + Inter Tight
+- **MDX** + remark/rehype (gfm, math, slug, KaTeX)
+- **React 19** islands · **Pagefind** search · **Motion** animations
+- **Biome** (lint/format) · **Vitest** + **Playwright** (unit + e2e)
+- **pnpm** package manager · deployed with **Wrangler** to Cloudflare
+
+## Repo structure
+
+```
+oriz-blog-beauty/
+├── src/
+│   ├── content/
+│   │   ├── blog/              # MDX posts (the content collection)
+│   │   └── config.ts          # zod schema for the blog collection
+│   ├── components/            # blog/, chrome/, embeds/ — UI pieces
+│   ├── layouts/               # page + post shells
+│   ├── pages/                 # routes: blog/, tags/, categories/, series/, authors/, legal/, account/
+│   ├── lib/                   # helpers (feeds, reading time, etc.)
+│   ├── i18n/locales/          # translations
+│   ├── data/                  # site data
+│   └── styles/                # Tailwind + theme
+├── astro.config.mjs           # site URL, integrations, redirects
+├── package.json               # scripts + deps (pnpm)
+├── docs/index.html            # GitHub Pages landing (redirects to live site)
+└── .github/workflows/         # deploy.yml — build + publish to Cloudflare
+```
+
+## Screenshots
+
+_No screenshot committed yet — see the live site: https://beauty-blog.oriz.in_
+
+## Quick start
 
 ```bash
-npm install --legacy-peer-deps
-npm run dev        # local dev
-npm run build      # static build → dist/
+pnpm install
+pnpm dev        # local dev server (astro dev)
+pnpm build      # static build → dist/ (astro build)
+pnpm preview    # preview the production build
 ```
+
+Other scripts: `pnpm typecheck` (astro check), `pnpm lint` (biome), `pnpm test` (vitest), `pnpm test:e2e` (playwright).
+
+## Configuration
+
+All client-exposed config uses `PUBLIC_*` env vars (values live in the CI/secrets vault, never in the repo). Names and purpose only:
+
+| Variable | Purpose |
+| --- | --- |
+| `PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key for the account UI island |
+| `PUBLIC_ADSENSE_CLIENT` | Google AdSense client id |
+| `PUBLIC_GA` | Google Analytics measurement id |
+| `PUBLIC_CF_BEACON_TOKEN` | Cloudflare Web Analytics beacon token |
+| `PUBLIC_ALGOLIA_APP_ID` | Algolia app id (optional search backend) |
+| `PUBLIC_ALGOLIA_SEARCH_KEY` | Algolia search-only key |
+| `PUBLIC_ALGOLIA_INDEX_NAME` | Algolia index name |
+| `PUBLIC_BUTTONDOWN_USERNAME` | Buttondown newsletter username |
+| `PUBLIC_GISCUS_REPO` | Giscus comments repo |
+| `PUBLIC_GISCUS_REPO_ID` | Giscus repo id |
+| `PUBLIC_GISCUS_CATEGORY` | Giscus discussion category |
+| `PUBLIC_GISCUS_CATEGORY_ID` | Giscus category id |
+| `PUBLIC_BASE_PATH` | Base path override for the GHP landing |
+
+## Part of the oriz family
+
+One of ~80 sites in the [oriz](https://blog.oriz.in) family — a fleet of small, focused static sites sharing a build mechanism (`@chirag127/*` packages) while each keeps its own identity. Runs at **$0 on the Cloudflare free tier**.
+
+## Contributing
+
+Issues and PRs welcome — typo fixes, corrections, and new post ideas especially. Keep changes small and use conventional commits.
 
 ## License
 
-MIT
+MIT © Chirag Singhal
+
+## Author
+
+Chirag Singhal · chirag@oriz.in
+
+## Status & roadmap
+
+Stable and live. Ongoing: more posts, better cross-linking between sibling oriz blogs.
+
+Conventional commits are the changelog.
